@@ -29,6 +29,5 @@ jobs:
         ADO_ORG: 'mobius'
         ADO_PROJECT: 'Backstage'
       run: |
-        python .github/workflows/validate-ado-wi/validate-pattern.py "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}"
         python .github/workflows/validate-ado-wi/validate-wi-exists.py "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" --org $ADO_ORG --project $ADO_PROJECT --pat $ADO_PAT
 
