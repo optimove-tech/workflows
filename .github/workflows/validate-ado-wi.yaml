@@ -1,0 +1,34 @@
+name: Validate Work Item in PR
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+jobs:
+  check-work-item:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        pip install requests
+
+    - name: Check for Work Item in PR Title or Description
+      run: |
+        python .github/workflows/validate-ado-wi/validate-pattern.py "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}"
+
+    - name: Check Work Item in PR Title or Description is exist
+      env:
+        ADO_PAT: ${{ secrets.ADO_PAT }}
+        ADO_ORG: 'mobius'
+        ADO_PROJECT: 'Backstage'
+      run: |
+        python .github/workflows/validate-ado-wi/validate-wi-exists.py "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" --org $ADO_ORG --project $ADO_PROJECT --pat $ADO_PAT
+
