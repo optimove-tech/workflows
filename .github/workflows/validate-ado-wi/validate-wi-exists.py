@@ -7,7 +7,6 @@ import sys
 def extract_and_verify_work_items(strings, organization, project, pat):
     pattern = r"AB#(\d+)"
     headers = {
-        'Authorization': 'Basic ' + pat,
         'Content-Type': 'application/json'
     }
 
@@ -16,7 +15,7 @@ def extract_and_verify_work_items(strings, organization, project, pat):
             work_item_id = match.group(1)
             url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
             print(url)
-            response = requests.get(url, headers=headers)
+            response  = requests.get(url, headers=headers, auth=('', pat))
             if response.status_code == 200:
                 print(f"Work item AB#{work_item_id} exists.")
             else:
