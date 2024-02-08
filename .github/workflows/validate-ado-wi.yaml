@@ -20,27 +20,13 @@ jobs:
       run: |
         pip install requests
     - name: Run Python Script
-      # You may pin to the exact commit or the version.
-      # uses: jannekem/run-python-script-action@bbfca66c612a28f3eeca0ae40e1f810265e2ea68
       uses: jannekem/run-python-script-action@v1.7
       with:
-        # Python script
         script: |
           import re
           import sys  
           
-          def check_for_pattern(strings):
-              pattern = r"AB#\d+"
-              matches = [string for string in strings if re.search(pattern, string)]
-              return matches
-        
-          strings_tocheck = ["${{ github.event.pull_request.title }}", "${{ github.event.pull_request.body }}"]
-          matches = check_for_pattern(args.strings)
-          if matches:
-              print("Found matches:", matches)
-          else:
-              print("No matches found.")
-              sys.exit(1)  # Exit with code 1 if no matches are found
+          
 
     - name: Check Work Item in PR Title or Description is exist
       env:
