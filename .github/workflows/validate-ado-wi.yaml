@@ -30,11 +30,8 @@ jobs:
             matches = [string for string in strings if re.search(pattern, string)]
             return matches
         
-        parser = argparse.ArgumentParser(description="Check for AB# pattern in a list of strings.")
-        parser.add_argument('strings', nargs='+', help='List of strings to check')
-        args = parser.parse_args()
         tocheck = ["${{ github.event.pull_request.title }}", "${{ github.event.pull_request.body }}"]
-        matches = check_for_pattern(args.strings)
+        matches = check_for_pattern(tocheck)
         if matches:
             print("Found matches:", matches)
         else:
