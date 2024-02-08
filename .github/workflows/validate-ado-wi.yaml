@@ -19,16 +19,60 @@ jobs:
     - name: Install dependencies
       run: |
         pip install requests
-
     - name: Check for Work Item in PR Title or Description
+      shell: python
       run: |
-        python .github/workflows/validate-ado-wi/validate-pattern.py "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}"
-
+        import re
+        import sys  
+        
+        def check_for_pattern(strings):
+            pattern = r"AB#\d+"
+            matches = [string for string in strings if re.search(pattern, string)]
+            return matches
+        
+        tocheck = ["${{ github.event.pull_request.title }}", "${{ github.event.pull_request.body }}"]
+        matches = check_for_pattern(tocheck)
+        if matches:
+            print("Found matches:", matches)
+        else:
+            print("No matches found.")
+            sys.exit(1)  # Exit with code 1 if no matches are found
+       
     - name: Check Work Item in PR Title or Description is exist
+      shell: python
       env:
         ADO_PAT: ${{ secrets.ADO_PAT }}
         ADO_ORG: 'mobius'
         ADO_PROJECT: 'Backstage'
       run: |
-        python .github/workflows/validate-ado-wi/validate-wi-exists.py "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" --org $ADO_ORG --project $ADO_PROJECT --pat $ADO_PAT
+        import re
+        import requests
+        import sys 
+        import os
+        
+        def extract_and_verify_work_items(strings, organization, project, pat):
+            pattern = r"AB#(\d+)"
+            headers = {
+                'Content-Type': 'application/json'
+            }
+        
+            for string in strings:
+                for match in re.finditer(pattern, string):
+                    work_item_id = match.group(1)
+                    url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
+                    print(url)
+                    response  = requests.get(url, headers=headers, auth=('', pat))
+                    if response.status_code == 200:
+                        print(f"Work item AB#{work_item_id} exists.")
+                    else:
+                        print(f"Work item AB#{work_item_id} does not exist or access denied.")
+                        print(response.status_code)
+                        sys.exit(1)
+        
+        strings = ["${{ github.event.pull_request.title }}", "${{ github.event.pull_request.body }}"]
+        org = os.environ['ADO_ORG']
+        project = os.environ['ADO_PROJECT']
+        pat = os.environ['ADO_PAT']
+        
+        extract_and_verify_work_items(strings, org, project, pat)
 
