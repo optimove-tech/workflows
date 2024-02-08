@@ -19,15 +19,28 @@ jobs:
     - name: Install dependencies
       run: |
         pip install requests
-    - name: Run Python Script
-      uses: jannekem/run-python-script-action@v1.7
-      with:
-        script: |
-          import re
-          import sys  
-          
-          
-
+    - name: Check for Work Item in PR Title or Description
+      shell: python
+      run: |
+        import re
+        import sys  
+        
+        def check_for_pattern(strings):
+            pattern = r"AB#\d+"
+            matches = [string for string in strings if re.search(pattern, string)]
+            return matches
+        
+        parser = argparse.ArgumentParser(description="Check for AB# pattern in a list of strings.")
+        parser.add_argument('strings', nargs='+', help='List of strings to check')
+        args = parser.parse_args()
+        tocheck = ["${{ github.event.pull_request.title }}", "${{ github.event.pull_request.body }}"]
+        matches = check_for_pattern(args.strings)
+        if matches:
+            print("Found matches:", matches)
+        else:
+            print("No matches found.")
+            sys.exit(1)  # Exit with code 1 if no matches are found
+       
     - name: Check Work Item in PR Title or Description is exist
       env:
         ADO_PAT: ${{ secrets.ADO_PAT }}
