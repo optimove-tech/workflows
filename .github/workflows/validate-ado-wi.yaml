@@ -31,7 +31,7 @@ jobs:
             matches = [string for string in strings if re.search(pattern, string)]
             return matches
         
-        tocheck = ["${{ github.event.pull_request.title }}", "${{ github.event.pull_request.body }}"]
+        tocheck = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
         matches = check_for_pattern(tocheck)
         if matches:
             print("Found matches:", matches)
@@ -70,10 +70,9 @@ jobs:
                         print(response.status_code)
                         sys.exit(1)
         
-        strings = ["${{ github.event.pull_request.title }}", "${{ github.event.pull_request.body }}"]
+        strings = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
         org = os.environ['ADO_ORG']
         project = os.environ['ADO_PROJECT']
         pat = os.environ['ADO_PAT']
         
         extract_and_verify_work_items(strings, org, project, pat)
-
