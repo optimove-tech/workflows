@@ -1,13 +1,7 @@
 name: 'PR Title Check'
 on:
   pull_request:
-    types:
-      - opened
-      - edited
-      - synchronize
-      - labeled
-      - unlabeled
-
+    types: [opened, reopened, synchronize, edited]
 jobs:
   check:
     runs-on: ubuntu-latest
