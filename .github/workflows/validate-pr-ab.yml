@@ -17,7 +17,7 @@ jobs:
       uses: joshjohanning/azdo_commit_message_validator@v2
       with:
         check-pull-request: true
-        #check-commits: true
+        check-commits: false
         #fail-if-missing-workitem-commit-link: true
         #link-commits-to-pull-request: true
         azure-devops-organization: mobius
