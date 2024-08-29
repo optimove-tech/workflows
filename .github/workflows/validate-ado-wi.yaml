@@ -29,16 +29,16 @@ jobs:
         
         def check_for_pattern(strings):
             pattern = r"AB#\d+"
-            matches = [string for string in strings if re.search(pattern, string)]
-            return matches
+            check_confirmed = [string for string in strings if re.search(pattern, string)]
+            return check_confirmed
         
-        tocheck = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
-        matches = check_for_pattern(tocheck)
-        if matches:
-            print("Found matches:", matches)
+        checklist = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
+        check_confirmed = check_for_pattern(checklist)
+        if check_confirmed:
+            print("Found check_confirmed:", check_confirmed)
         else:
-            print("No matches found.")
-            sys.exit(1)  # Exit with code 1 if no matches are found
+            print("No check_confirmed found.")
+            sys.exit(1)  # Exit with code 1 if no check_confirmed are found
        
     - name: Check Work Item in PR Title or Description is exist
       id: ifExists
