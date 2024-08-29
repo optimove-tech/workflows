@@ -3,7 +3,6 @@ name: Validate Work Item in PR
 on:
   pull_request:
     types: [opened, reopened, synchronize, edited]
-  workflow_dispatch:
 
 jobs:
   check-work-item:
@@ -20,26 +19,48 @@ jobs:
     - name: Install dependencies
       run: |
         pip install requests
+
+    - name: Get PR title & body
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        PULL_REQUEST=$(gh api ${{ github.event.pull_request.url }})
+
+        PR_TITLE=$(echo $PULL_REQUEST | jq --raw-output .title)
+        PR_BODY=$(echo $PULL_REQUEST | jq --raw-output .body)
+
+        echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
+        echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
+
+        
     - name: Check for Work Item in PR Title or Description
+      id: ifLinked
       shell: python
       run: |
         import re
-        import sys  
+        import sys
+        import os
         
+        PR_BODY = os.environ['PR_BODY']
+        PR_TITLE = os.environ['PR_TITLE']
+
         def check_for_pattern(strings):
             pattern = r"AB#\d+"
-            matches = [string for string in strings if re.search(pattern, string)]
-            return matches
+            check_confirmed = [string for string in strings if re.search(pattern, string)]
+            return check_confirmed
+            
+        checklist = [PR_BODY, PR_TITLE]
+        check_confirmed = check_for_pattern(checklist)
         
-        tocheck = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
-        matches = check_for_pattern(tocheck)
-        if matches:
-            print("Found matches:", matches)
+        if check_confirmed:
+            print("Found linked working item:", check_confirmed)
         else:
-            print("No matches found.")
-            sys.exit(1)  # Exit with code 1 if no matches are found
+            print("No linked working item found.")
+            sys.exit(1)
        
     - name: Check Work Item in PR Title or Description is exist
+      id: ifExists
       shell: python
       env:
         ADO_PAT: ${{ secrets.ADO_PAT }}
@@ -50,14 +71,21 @@ jobs:
         import requests
         import sys 
         import os
+
+        PR_BODY = os.environ['PR_BODY']
+        PR_TITLE = os.environ['PR_TITLE']
+
+        org = os.environ['ADO_ORG']
+        project = os.environ['ADO_PROJECT']
+        pat = os.environ['ADO_PAT']
         
-        def extract_and_verify_work_items(strings, organization, project, pat):
+        def extract_and_verify_work_items(checklist, organization, project, pat):
             pattern = r"AB#(\d+)"
             headers = {
                 'Content-Type': 'application/json'
             }
         
-            for string in strings:
+            for string in checklist:
                 for match in re.finditer(pattern, string):
                     work_item_id = match.group(1)
                     url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
@@ -70,9 +98,44 @@ jobs:
                         print(response.status_code)
                         sys.exit(1)
         
-        strings = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
-        org = os.environ['ADO_ORG']
-        project = os.environ['ADO_PROJECT']
-        pat = os.environ['ADO_PAT']
         
-        extract_and_verify_work_items(strings, org, project, pat)
+        checklist = [PR_BODY, PR_TITLE]
+        extract_and_verify_work_items(checklist, org, project, pat)
+
+    - name: Ping PR Author to link Work Item
+      if: ${{ failure() && steps.ifLinked.conclusion == 'failure' }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `👋 Hey @${{ github.event.pull_request.user.login }},
+            
+            ❗️ Work Item link check failed: There is no Work Item linked to this PR. 
+            
+            🧩 Please add the Work Item ID to the PR title or description using the "Edit" option in the format below:
+            AB#XXXXX - replace X with a valid Work Item ID.
+            
+            🟢 After that, please use "Re-run jobs" in PR check or proceed with "Close pull request" and "Reopen pull request" options below to restart the validation.`
+          })
+
+    - name: Ping PR Author to verify Work Item ID
+      if: ${{ failure() && steps.ifExists.conclusion == 'failure' }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `👋 Hey @${{ github.event.pull_request.user.login }},
+            
+            ❗️ Work Item link check failed: The specified Work Item ID could not be found.
+            
+            🔎 Make sure the Work Item ID exists in the PR title or description, and correct it using the "Edit" option in the format below:
+            AB#XXXXX - replace X with a valid Work Item ID.
+            
+            🟢 Once corrected, please use "Re-run jobs" in PR check or proceed with "Close pull request" and "Reopen pull request" options below to restart the validation.`
+          })
