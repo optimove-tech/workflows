@@ -19,6 +19,28 @@ jobs:
     - name: Install dependencies
       run: |
         pip install requests
+
+    - name: pr-workitems-validator
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        # run azdo_commit_message_validator
+        
+        # prerequisite check
+        for cmd in gh jq cut grep; do
+          if ! command -v $cmd &> /dev/null; then
+            echo "::error title=${cmd} not installed::Could not find \`${cmd}\` on the runner"
+            exit 1
+          fi
+        done
+
+        PULL_REQUEST=$(gh api ${{ github.event.pull_request.url }})
+        PULL_BODY=$(echo $PULL_REQUEST | jq --raw-output .body)
+        PULL_TITLE=$(echo $PULL_REQUEST | jq --raw-output .title)
+
+        echo $PULL_REQUEST
+
         
     - name: Check for Work Item in PR Title or Description
       id: ifLinked
@@ -36,10 +58,8 @@ jobs:
         matches = check_for_pattern(tocheck)
         if matches:
             print("Found matches:", matches)
-            print("${{ github.event.pull_request.url }}")
         else:
             print("No matches found.")
-            print("${{ github.event.pull_request.url }}")
             sys.exit(1)  # Exit with code 1 if no matches are found
        
     - name: Check Work Item in PR Title or Description is exist
