@@ -1,24 +1,19 @@
-name: "Lint PR"
-
+name: 'PR Title Check'
 on:
-  pull_request_target:
+  pull_request:
     types:
       - opened
       - edited
       - synchronize
-      - reopened
-
-permissions:
-  pull-requests: read
+      - labeled
+      - unlabeled
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: thehanimo/pr-title-checker@v1.4.1
+      - uses: actions/checkout@v3
+      - name: PR Title Verify
+        uses: satvik-s/pr-title-check
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          github_configuration_repo: workflows
-          pass_on_octokit_error: false
-          github_configuration_ref: check-another-validation
-          github_configuration_path: pr-title-checker-config.json #(optional. defaults to .github/pr-title-checker-config.json)
+          pattern: 'AB#225831'
