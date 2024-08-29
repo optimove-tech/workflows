@@ -43,6 +43,9 @@ jobs:
         
         PULL_BODY = os.environ['PULL_BODY']
         PULL_TITLE = os.environ['PULL_TITLE']
+        print("print")
+        print(PULL_BODY)
+        print(PULL_TITLE)
 
         def check_for_pattern(strings):
             pattern = r"AB#\d+"
