@@ -39,7 +39,7 @@ jobs:
       shell: python
       env:
         PR_BODY: ${{ env.PR_BODY }}
-        PR_TITLE: ${{ senv.PR_TITLE }}
+        PR_TITLE: ${{ env.PR_TITLE }}
       run: |
         import re
         import sys
