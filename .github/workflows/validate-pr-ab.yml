@@ -38,7 +38,8 @@ jobs:
       shell: python
       run: |
         import re
-        import sys  
+        import sys
+        import os
         
         PULL_BODY = os.environ['PULL_BODY']
         PULL_TITLE = os.environ['PULL_TITLE']
