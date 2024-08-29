@@ -1,118 +1,13 @@
-name: Validate Work Item in PR
-
+name: 'PR Title Check'
 on:
   pull_request:
     types: [opened, reopened, synchronize, edited]
-
 jobs:
-  check-work-item:
+  check:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-
-    - name: Install dependencies
-      run: |
-        pip install requests
-        
-    - name: Check for Work Item in PR Title or Description
-      id: ifLinked
-      shell: python
-      run: |
-        import re
-        import sys  
-        
-        def check_for_pattern(strings):
-            pattern = r"AB#\d+"
-            matches = [string for string in strings if re.search(pattern, string)]
-            return matches
-        
-        tocheck = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
-        matches = check_for_pattern(tocheck)
-        if matches:
-            print("Found matches:", matches)
-        else:
-            print("No matches found.")
-            sys.exit(1)  # Exit with code 1 if no matches are found
-       
-    - name: Check Work Item in PR Title or Description is exist
-      id: ifExists
-      shell: python
-      env:
-        ADO_PAT: ${{ secrets.ADO_PAT }}
-        ADO_ORG: 'mobius'
-        ADO_PROJECT: 'Backstage'
-      run: |
-        import re
-        import requests
-        import sys 
-        import os
-        
-        def extract_and_verify_work_items(strings, organization, project, pat):
-            pattern = r"AB#(\d+)"
-            headers = {
-                'Content-Type': 'application/json'
-            }
-        
-            for string in strings:
-                for match in re.finditer(pattern, string):
-                    work_item_id = match.group(1)
-                    url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
-                    print(url)
-                    response  = requests.get(url, headers=headers, auth=('', pat))
-                    if response.status_code == 200:
-                        print(f"Work item AB#{work_item_id} exists.")
-                    else:
-                        print(f"Work item AB#{work_item_id} does not exist or access denied.")
-                        print(response.status_code)
-                        sys.exit(1)
-        
-        strings = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
-        org = os.environ['ADO_ORG']
-        project = os.environ['ADO_PROJECT']
-        pat = os.environ['ADO_PAT']
-        
-        extract_and_verify_work_items(strings, org, project, pat)
-
-    - name: Ping PR Author to link Work Item
-      if: ${{ failure() && steps.ifLinked.conclusion == 'failure' }}
-      uses: actions/github-script@v6
-      with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `👋 Hey @${{ github.event.pull_request.user.login }},
-            
-            ❗️ Work Item link check failed: There is no Work Item linked to this PR. 
-            
-            🧩 Please add the Work Item ID to the PR title or description using the "Edit" option in the format below:
-            AB#XXXXX - replace X with a valid Work Item ID.
-            
-            🟢 After that, please use the "Close pull request" and "Reopen pull request" options below to restart the validation.`
-          })
-
-    - name: Ping PR Author to verify Work Item ID
-      if: ${{ failure() && steps.ifExists.conclusion == 'failure' }}
-      uses: actions/github-script@v6
-      with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `👋 Hey @${{ github.event.pull_request.user.login }},
-            
-            ❗️ Work Item link check failed: The specified Work Item ID could not be found.
-            
-            🔎 Make sure the Work Item ID exists in the PR title or description, and correct it using the "Edit" option in the format below:
-            AB#XXXXX - replace X with a valid Work Item ID.
-            
-            🟢 Once corrected, please use the "Close pull request" and "Reopen pull request" options below to restart the validation.`
-          })
+      - uses: actions/checkout@v3
+      - name: PR Title Verify
+        uses: satvik-s/pr-title-check
+        with:
+          pattern: 'AB#225831'
