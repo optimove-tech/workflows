@@ -24,11 +24,11 @@ jobs:
           # Configure which types are allowed (newline-delimited).
           # Default: https://github.com/commitizen/conventional-commit-types
           types: |
-            ""
+            
           # Configure which scopes are allowed (newline-delimited).
           # These are regex patterns auto-wrapped in `^ $`.
           scopes: |
-            ""
+            
           # Configure that a scope must always be provided.
           requireScope: true
           # Configure which scopes are disallowed in PR titles (newline-delimited).
