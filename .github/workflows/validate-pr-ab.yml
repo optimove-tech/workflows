@@ -25,21 +25,12 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # run azdo_commit_message_validator
-        
-        # prerequisite check
-        for cmd in gh jq cut grep; do
-          if ! command -v $cmd &> /dev/null; then
-            echo "::error title=${cmd} not installed::Could not find \`${cmd}\` on the runner"
-            exit 1
-          fi
-        done
-
         PULL_REQUEST=$(gh api ${{ github.event.pull_request.url }})
         PULL_BODY=$(echo $PULL_REQUEST | jq --raw-output .body)
         PULL_TITLE=$(echo $PULL_REQUEST | jq --raw-output .title)
 
-        echo $PULL_REQUEST
+        echo "PULL_BODY=$PULL_BODY" >> $GITHUB_ENV
+        echo "PULL_TITLE=$PULL_TITLE" >> $GITHUB_ENV
 
         
     - name: Check for Work Item in PR Title or Description
@@ -49,12 +40,15 @@ jobs:
         import re
         import sys  
         
+        PULL_BODY = os.environ['PULL_BODY']
+        PULL_TITLE = os.environ['PULL_TITLE']
+
         def check_for_pattern(strings):
             pattern = r"AB#\d+"
             matches = [string for string in strings if re.search(pattern, string)]
             return matches
         
-        tocheck = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
+        tocheck = ["PULL_TITLE", "PULL_BODY"]
         matches = check_for_pattern(tocheck)
         if matches:
             print("Found matches:", matches)
