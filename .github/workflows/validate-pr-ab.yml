@@ -23,7 +23,7 @@ jobs:
     - name: pr-workitems-validator
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # run azdo_commit_message_validator
         
