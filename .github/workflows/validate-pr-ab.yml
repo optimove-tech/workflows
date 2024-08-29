@@ -36,6 +36,9 @@ jobs:
     - name: Check for Work Item in PR Title or Description
       id: ifLinked
       shell: python
+      env:
+        PULL_BODY: ${{ env.PULL_BODY }}
+        PULL_TITLE: ${{ env.PULL_TITLE }}
       run: |
         import re
         import sys
