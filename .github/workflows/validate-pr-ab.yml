@@ -58,13 +58,13 @@ jobs:
           # validation is skipped. If you want to rerun the validation when
           # labels change, you might want to use the `labeled` and `unlabeled`
           # event triggers in your workflow.
-          ignoreLabels: |
-            bot
-            ignore-semantic-pull-request
-          # If you're using a format for the PR title that differs from the traditional Conventional
-          # Commits spec, you can use these options to customize the parsing of the type, scope and
-          # subject. The `headerPattern` should contain a regex where the capturing groups in parentheses
-          # correspond to the parts listed in `headerPatternCorrespondence`.
-          # See: https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-commits-parser#headerpattern
-          headerPattern: '^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$'
-          headerPatternCorrespondence: type, scope, subject
+          # ignoreLabels: |
+          #   bot
+          #   ignore-semantic-pull-request
+          # # If you're using a format for the PR title that differs from the traditional Conventional
+          # # Commits spec, you can use these options to customize the parsing of the type, scope and
+          # # subject. The `headerPattern` should contain a regex where the capturing groups in parentheses
+          # # correspond to the parts listed in `headerPatternCorrespondence`.
+          # # See: https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-commits-parser#headerpattern
+          # headerPattern: '^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$'
+          # headerPatternCorrespondence: type, scope, subject
