@@ -26,25 +26,25 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         PULL_REQUEST=$(gh api ${{ github.event.pull_request.url }})
-        PULL_BODY=$(echo $PULL_REQUEST | jq --raw-output .body)
-        PULL_TITLE=$(echo $PULL_REQUEST | jq --raw-output .title)
 
-        echo "PULL_BODY=$PULL_BODY" >> $GITHUB_ENV
-        echo "PULL_TITLE=$PULL_TITLE" >> $GITHUB_ENV
+        PR_TITLE=$(echo $PULL_REQUEST | jq --raw-output .title)
+        PR_BODY=$(echo $PULL_REQUEST | jq --raw-output .body)
+
+        echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
+        echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
 
         
     - name: Check for Work Item in PR Title or Description
       id: ifLinked
       shell: python
+      env:
+        PR_BODY: ${{ env.PR_BODY }}
+        PR_TITLE: ${{ senv.PR_TITLE }}
       run: |
         import re
         import sys
         import os
         
-        PULL_BODY = os.environ['PULL_BODY']
-        PULL_TITLE = os.environ['PULL_TITLE']
-        print("PULL_BODY:", PULL_BODY)
-        print("PULL_TITLE:", PULL_TITLE)
 
         def check_for_pattern(strings):
             pattern = r"AB#\d+"
