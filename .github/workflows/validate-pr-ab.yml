@@ -20,7 +20,7 @@ jobs:
       run: |
         pip install requests
 
-    - name: pr-workitems-validator
+    - name: Get PR title & body
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
