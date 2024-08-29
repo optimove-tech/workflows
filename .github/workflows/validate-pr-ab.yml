@@ -1,21 +1,24 @@
-name: validate-pull-request-title
+name: pr-commit-message-enforcer-and-linker
 
 on:
   pull_request:
-    types:
-      - opened
-      - edited
-      - synchronize
-
-permissions:
-  pull-requests: read
+    branches: [ "main" ]
 
 jobs:
-  validator:
-    name: validate-pull-request-title
+  pr-commit-message-enforcer-and-linker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
     steps:
-      - name: validate pull request title
-        uses: kontrolplane/pull-request-title-validator@v1.3.2
-        with:
-          scopes: "AB#225831"
+    - uses: actions/checkout@v4
+    - name: Azure DevOps Commit Validator and Pull Request Linker
+      uses: joshjohanning/azdo_commit_message_validator@v2
+      with:
+        check-pull-request: true
+        check-commits: true
+        #fail-if-missing-workitem-commit-link: true
+        #link-commits-to-pull-request: true
+        azure-devops-organization: mobius
+        azure-devops-token: ${{ secrets.ADO_PAT }}
