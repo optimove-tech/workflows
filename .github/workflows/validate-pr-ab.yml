@@ -36,9 +36,6 @@ jobs:
     - name: Check for Work Item in PR Title or Description
       id: ifLinked
       shell: python
-      env:
-        PULL_BODY: ${{ env.PULL_BODY }}
-        PULL_TITLE: ${{ env.PULL_TITLE }}
       run: |
         import re
         import sys
@@ -46,16 +43,15 @@ jobs:
         
         PULL_BODY = os.environ['PULL_BODY']
         PULL_TITLE = os.environ['PULL_TITLE']
-        print("print")
-        print(PULL_BODY)
-        print(PULL_TITLE)
+        print("PULL_BODY:", PULL_BODY)
+        print("PULL_TITLE:", PULL_TITLE)
 
         def check_for_pattern(strings):
             pattern = r"AB#\d+"
             matches = [string for string in strings if re.search(pattern, string)]
             return matches
-        
-        tocheck = ["PULL_TITLE", "PULL_BODY"]
+            
+        tocheck = [PULL_TITLE, PULL_BODY]
         matches = check_for_pattern(tocheck)
         if matches:
             print("Found matches:", matches)
