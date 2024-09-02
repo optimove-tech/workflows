@@ -47,7 +47,7 @@ jobs:
 
         checklist = [PR_BODY, PR_TITLE]
 
-        python3 .github/workflows/validate-ado-wi/validate-pattern.py -checklist "['PR_BODY', 'PR_TITLE']"
+        python3 .github/workflows/validate-ado-wi/validate-pattern.py -checklist "[PR_BODY, PR_TITLE]"
 
        
     - name: Check Work Item in PR Title or Description is exist
