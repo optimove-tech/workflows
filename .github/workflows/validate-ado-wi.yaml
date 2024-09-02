@@ -3,14 +3,20 @@ name: Validate Work Item in PR
 on:
   pull_request:
     types: [opened, reopened, synchronize, edited]
-  workflow_dispatch:
 
 jobs:
   check-work-item:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+
+    - name: Checkout Workflows Repository
+      uses: actions/checkout@v3
+      with:
+        repository: optimove-tech/workflows
+        path: org-workflows
+        ref: 'main'
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -20,59 +26,77 @@ jobs:
     - name: Install dependencies
       run: |
         pip install requests
-    - name: Check for Work Item in PR Title or Description
-      shell: python
-      run: |
-        import re
-        import sys  
-        
-        def check_for_pattern(strings):
-            pattern = r"AB#\d+"
-            matches = [string for string in strings if re.search(pattern, string)]
-            return matches
-        
-        tocheck = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
-        matches = check_for_pattern(tocheck)
-        if matches:
-            print("Found matches:", matches)
-        else:
-            print("No matches found.")
-            sys.exit(1)  # Exit with code 1 if no matches are found
-       
-    - name: Check Work Item in PR Title or Description is exist
-      shell: python
+
+    - name: Get PR title & body
+      shell: bash
       env:
-        ADO_PAT: ${{ secrets.ADO_PAT }}
-        ADO_ORG: 'mobius'
-        ADO_PROJECT: 'Backstage'
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        import re
-        import requests
-        import sys 
-        import os
+        PULL_REQUEST=$(gh api ${{ github.event.pull_request.url }})
+
+        PR_TITLE=$(echo $PULL_REQUEST | jq --raw-output .title)
+        PR_BODY=$(echo $PULL_REQUEST | jq --raw-output .body)
+
+        echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
+        echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
+
+    - name: Check for Work Item in PR Title or Description
+      id: ifLinked
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "PR Title: $PR_TITLE"
+        echo "PR Body: $PR_BODY"
         
-        def extract_and_verify_work_items(strings, organization, project, pat):
-            pattern = r"AB#(\d+)"
-            headers = {
-                'Content-Type': 'application/json'
-            }
+        python3 org-workflows/.github/workflows/validate-ado-wi/validate-pattern.py -checklist "['$PR_BODY', '$PR_TITLE']"
+
+    - name: Check Work Item in PR Title or Description is exist
+      id: ifExists
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ADO_PAT: ${{ secrets.ADO_PAT}}
+      run: |
+        echo "PR Title: $PR_TITLE"
+        echo "PR Body: $PR_BODY"
         
-            for string in strings:
-                for match in re.finditer(pattern, string):
-                    work_item_id = match.group(1)
-                    url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
-                    print(url)
-                    response  = requests.get(url, headers=headers, auth=('', pat))
-                    if response.status_code == 200:
-                        print(f"Work item AB#{work_item_id} exists.")
-                    else:
-                        print(f"Work item AB#{work_item_id} does not exist or access denied.")
-                        print(response.status_code)
-                        sys.exit(1)
-        
-        strings = ["${{ github.event.pull_request.title }}", """${{ github.event.pull_request.body }}"""]
-        org = os.environ['ADO_ORG']
-        project = os.environ['ADO_PROJECT']
-        pat = os.environ['ADO_PAT']
-        
-        extract_and_verify_work_items(strings, org, project, pat)
+        python3 org-workflows/.github/workflows/validate-ado-wi/validate-wi-exists.py -checklist "['$PR_BODY', '$PR_TITLE']" -organization 'mobius' -project 'Backstage'
+
+    - name: Ping PR Author to link Work Item
+      if: ${{ failure() && steps.ifLinked.conclusion == 'failure' }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `👋 Hey @${{ github.event.pull_request.user.login }},
+            
+            ❗️ Work Item link check failed: There is no Work Item linked to this PR. 
+            
+            🧩 Please add the Work Item ID to the PR title or description using the "Edit" option in the format below:
+            AB#XXXXX - replace X with a valid Work Item ID.
+            
+            🟢 Once added, please use "Re-run jobs" in PR check or proceed with "Close pull request" and "Reopen pull request" options below to restart the validation.`
+          })
+
+    - name: Ping PR Author to verify Work Item ID
+      if: ${{ failure() && steps.ifExists.conclusion == 'failure' }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `👋 Hey @${{ github.event.pull_request.user.login }},
+            
+            ❗️ Work Item link check failed: The specified Work Item ID could not be found.
+            
+            🔎 Make sure the Work Item ID exists in the PR title or description, and correct it using the "Edit" option in the format below:
+            AB#XXXXX - replace X with a valid Work Item ID.
+            
+            🟢 Once corrected, please use "Re-run jobs" in PR check or proceed with "Close pull request" and "Reopen pull request" options below to restart the validation.`
+          })

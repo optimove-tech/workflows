@@ -1,37 +1,63 @@
 
 import re
-import requests
+import ast
 import argparse
-import sys 
+import logging
+import sys
+import requests
+import os
 
-def extract_and_verify_work_items(strings, organization, project, pat):
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='Parameters to validate pattern'
+    )
+
+    parser.add_argument('-checklist', dest='checklist', type=str,
+                        help='Specify checklist to parse. Example: [PR_BODY, PR_TITLE]',
+                        required=True)
+
+    parser.add_argument('-organization', dest='organization', type=str,
+                        help='Azure Organization name. Example: mobius',
+                        required=True)
+    
+    parser.add_argument('-project', dest='project', type=str,
+                        help='Azure Project name. Example: Backstage',
+                        required=True)
+    
+    args = parser.parse_args()
+    checklist = ast.literal_eval(args.checklist)
+    organization = args.organization
+    project = args.project
+    
+    return checklist, organization, project
+
+def extract_and_verify_work_items(checklist, organization, project):
     pattern = r"AB#(\d+)"
+    pat = os.getenv('ADO_PAT')
     headers = {
         'Content-Type': 'application/json'
     }
 
-    for string in strings:
+    for string in checklist:
+        logging.info(f"Checking {string}...")
         for match in re.finditer(pattern, string):
             work_item_id = match.group(1)
             url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
-            print(url)
+            logging.info(f"URL: {url}")
             response  = requests.get(url, headers=headers, auth=('', pat))
             if response.status_code == 200:
-                print(f"Work item AB#{work_item_id} exists.")
-            else:
-                print(f"Work item AB#{work_item_id} does not exist or access denied.")
-                print(response.status_code)
-                sys.exit(1)
+                logging.info(f"Work item AB#{work_item_id} exists.")
+                return
+            
+            logging.error(f"Work item AB#{work_item_id} does not exist or access denied.")
+            logging.error(f"Error code: {response.status_code}.")
+            raise ValueError("Work item AB#{work_item_id} does not exist or access denied.")
 
-def main():
-    parser = argparse.ArgumentParser(description="Extract AB# pattern strings and verify with ADO API.")
-    parser.add_argument('strings', nargs='+', help='List of strings to check')
-    parser.add_argument('--org', required=True, help='Azure DevOps organization')
-    parser.add_argument('--project', required=True, help='Azure DevOps project')
-    parser.add_argument('--pat', required=True, help='Personal Access Token for Azure DevOps API')
-    args = parser.parse_args()
-
-    extract_and_verify_work_items(args.strings, args.org, args.project, args.pat)
+def main(checklist, organization, project):
+    extract_and_verify_work_items(checklist, organization, project)
 
 if __name__ == "__main__":
-    main()
+    _checklist, _organization, _project = parse_args()
+    main(checklist=_checklist, organization=_organization, project=_project)

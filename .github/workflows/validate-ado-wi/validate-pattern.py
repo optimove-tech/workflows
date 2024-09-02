@@ -1,23 +1,40 @@
 import re
+import ast
 import argparse
-import sys  # Import the sys module
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='Parameters to validate pattern'
+    )
+
+    parser.add_argument('-checklist', dest='checklist', type=str,
+                        help='Specify checklist to parse. Example: [PR_BODY, PR_TITLE]',
+                        required=True)
+    
+    args = parser.parse_args()
+    checklist = ast.literal_eval(args.checklist)
+    return checklist
 
 def check_for_pattern(strings):
     pattern = r"AB#\d+"
-    matches = [string for string in strings if re.search(pattern, string)]
-    return matches
+    check_confirmed = [string for string in strings if re.search(pattern, string)]
+    return check_confirmed
 
-def main():
-    parser = argparse.ArgumentParser(description="Check for AB# pattern in a list of strings.")
-    parser.add_argument('strings', nargs='+', help='List of strings to check')
-    args = parser.parse_args()
+def validate_check(check_confirmed):
+    if check_confirmed:
+        logging.info(f"Found linked working item: {check_confirmed}...")
+        return
 
-    matches = check_for_pattern(args.strings)
-    if matches:
-        print("Found matches:", matches)
-    else:
-        print("No matches found.")
-        sys.exit(1)  # Exit with code 1 if no matches are found
+    logging.error("No linked working item found...")
+    raise ValueError("No linked working item found...")
+
+def main(checklist):
+    check_result = check_for_pattern(checklist)
+    validate_check(check_result)
 
 if __name__ == "__main__":
-    main()
+    checklist = parse_args()
+    main(checklist=checklist)
