@@ -46,6 +46,7 @@ jobs:
         PR_TITLE = os.environ['PR_TITLE']
 
         checklist = [PR_BODY, PR_TITLE]
+        print(checklist)
 
         python3 .github/workflows/validate-ado-wi/validate-pattern.py -checklist "\[PR_BODY, PR_TITLE\]"
 
