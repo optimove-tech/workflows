@@ -9,7 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+
+    - name: Checkout Workflows Repository
+      uses: actions/checkout@v3
+      with:
+        repository: optimove-tech/workflows  # Replace with the owner and repository name
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -32,6 +37,10 @@ jobs:
 
         echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
         echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
+
+        pwd
+
+        python3 .github/workflows/validate-ado-wi/validate-pattern.py -checklist "['$PR_BODY', '$PR_TITLE']"
 
         
     - name: Check for Work Item in PR Title or Description
