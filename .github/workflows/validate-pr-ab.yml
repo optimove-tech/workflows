@@ -41,7 +41,7 @@ jobs:
 
         pwd
 
-        python3 org-workflows/.github/workflows/validate-ado-wi/validate-pattern.py -checklist -checklist "[\'${PR_BODY//\'/\'\\\'\'}, \'${PR_TITLE//\'/\'\\\'\'}\']"
+        python3 org-workflows/.github/workflows/validate-ado-wi/validate-pattern.py -checklist "[\'${PR_BODY//\'/\'\\\'\'}, \'${PR_TITLE//\'/\'\\\'\'}\']"
 
         
     - name: Check for Work Item in PR Title or Description
