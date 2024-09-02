@@ -16,7 +16,7 @@ jobs:
       with:
         repository: optimove-tech/workflows
         path: org-workflows
-        ref: 'check-another-validation'
+        ref: 'main'
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -56,11 +56,12 @@ jobs:
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ADO_PAT: ${{ secrets.PAT }}
       run: |
         echo "PR Title: $PR_TITLE"
         echo "PR Body: $PR_BODY"
         
-        python3 org-workflows/.github/workflows/validate-ado-wi/validate-wi-exists.py -checklist "['$PR_BODY', '$PR_TITLE']" -organization 'mobius' -project 'Backstage' -pat '${{ secrets.ADO_PAT }}'
+        python3 org-workflows/.github/workflows/validate-ado-wi/validate-wi-exists.py -checklist "['$PR_BODY', '$PR_TITLE']" -organization 'mobius' -project 'Backstage'
 
     - name: Ping PR Author to link Work Item
       if: ${{ failure() && steps.ifLinked.conclusion == 'failure' }}
@@ -78,7 +79,7 @@ jobs:
             🧩 Please add the Work Item ID to the PR title or description using the "Edit" option in the format below:
             AB#XXXXX - replace X with a valid Work Item ID.
             
-            🟢 After that, please use "Re-run jobs" in PR check or proceed with "Close pull request" and "Reopen pull request" options below to restart the validation.`
+            🟢 Once added, please use "Re-run jobs" in PR check or proceed with "Close pull request" and "Reopen pull request" options below to restart the validation.`
           })
 
     - name: Ping PR Author to verify Work Item ID

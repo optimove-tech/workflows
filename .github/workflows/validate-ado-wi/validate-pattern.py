@@ -2,6 +2,9 @@ import re
 import ast
 import argparse
 import sys
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -23,10 +26,11 @@ def check_for_pattern(strings):
 
 def validate_check(check_confirmed):
     if check_confirmed:
-        print("Found linked working item:", check_confirmed)
-    else:
-        print("No linked working item found.")
-        sys.exit(1)
+        logging.info(f"Found linked working item: {check_confirmed}...")
+        return
+
+    logging.error("No linked working item found...")
+    raise ValueError("No linked working item found.")
 
 def main(checklist):
     check_result = check_for_pattern(checklist)

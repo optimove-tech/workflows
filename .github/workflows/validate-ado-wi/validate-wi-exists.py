@@ -4,6 +4,7 @@ import ast
 import argparse
 import sys
 import requests
+import os
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -22,20 +23,16 @@ def parse_args():
                         help='Azure Project name. Example: Backstage',
                         required=True)
     
-    parser.add_argument('-pat', dest='pat', type=str,
-                        help='Private Access Token for auth',
-                        required=True)
-    
     args = parser.parse_args()
     checklist = ast.literal_eval(args.checklist)
     organization = args.organization
     project = args.project
-    pat = args.pat
     
-    return checklist, organization, project, pat
+    return checklist, organization, project
 
-def extract_and_verify_work_items(checklist, organization, project, pat):
+def extract_and_verify_work_items(checklist, organization, project):
     pattern = r"AB#(\d+)"
+    pat = os.getenv('ADO_PAT')
     headers = {
         'Content-Type': 'application/json'
     }
@@ -53,9 +50,9 @@ def extract_and_verify_work_items(checklist, organization, project, pat):
                 print(response.status_code)
                 sys.exit(1)
 
-def main(checklist, organization, project, pat):
-    extract_and_verify_work_items(checklist, organization, project, pat)
+def main(checklist, organization, project):
+    extract_and_verify_work_items(checklist, organization, project)
 
 if __name__ == "__main__":
-    _checklist, _organization, _project, _pat = parse_args()
-    main(checklist=_checklist, organization=_organization, project=_project, pat=_pat)
+    _checklist, _organization, _project = parse_args()
+    main(checklist=_checklist, organization=_organization, project=_project)
