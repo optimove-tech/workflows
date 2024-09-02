@@ -1,22 +1,20 @@
 import re
 import ast
 import argparse
-import sys  # Import the sys module
+import sys
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Parameters to validate pattern',
-        usage='-checklist [PR_TITLE, PR_BODY]')
+        description='Parameters to validate pattern'
+    )
 
     parser.add_argument('-checklist', dest='checklist', type=str,
-                        help='Specify checklist to parse'
-                             'Example: PR_BODY',
+                        help='Specify checklist to parse. Example: [PR_BODY, PR_TITLE]',
                         required=True)
     
     args = parser.parse_args()
     checklist = ast.literal_eval(args.checklist)
-
-    return (checklist)
+    return checklist
 
 def check_for_pattern(strings):
     pattern = r"AB#\d+"
@@ -35,5 +33,5 @@ def main(checklist):
     validate_check(check_result)
 
 if __name__ == "__main__":
-    _checklist = parse_args()
-    main(checklist=_checklist)
+    checklist = parse_args()
+    main(checklist=checklist)
