@@ -41,10 +41,11 @@ def extract_and_verify_work_items(checklist, organization, project):
     }
 
     for string in checklist:
+        logging.info(f"Checking {string}...")
         for match in re.finditer(pattern, string):
             work_item_id = match.group(1)
             url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
-            print(url)
+            logging.info(f"URL: {url}")
             response  = requests.get(url, headers=headers, auth=('', pat))
             if response.status_code == 200:
                 logging.info(f"Work item AB#{work_item_id} exists.")

@@ -29,7 +29,7 @@ def validate_check(check_confirmed):
         return
 
     logging.error("No linked working item found...")
-    raise ValueError("No linked working item found.")
+    raise ValueError("No linked working item found...")
 
 def main(checklist):
     check_result = check_for_pattern(checklist)
