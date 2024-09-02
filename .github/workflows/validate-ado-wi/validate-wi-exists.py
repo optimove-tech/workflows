@@ -57,5 +57,5 @@ def main(checklist, organization, project, pat):
     extract_and_verify_work_items(checklist, organization, project, pat)
 
 if __name__ == "__main__":
-    _checklist, _org, _project, _pat = parse_args()
-    main(checklist=_checklist, org=_org, project=_project, pat=_pat)
+    _checklist, _organization, _project, _pat = parse_args()
+    main(checklist=_checklist, organization=_organization, project=_project, pat=_pat)
