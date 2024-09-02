@@ -2,8 +2,12 @@
 import re
 import ast
 import argparse
+import logging
 import sys
 import requests
+import os
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -22,20 +26,16 @@ def parse_args():
                         help='Azure Project name. Example: Backstage',
                         required=True)
     
-    parser.add_argument('-pat', dest='pat', type=str,
-                        help='Private Access Token for auth',
-                        required=True)
-    
     args = parser.parse_args()
     checklist = ast.literal_eval(args.checklist)
     organization = args.organization
     project = args.project
-    pat = args.pat
     
-    return checklist, organization, project, pat
+    return checklist, organization, project
 
-def extract_and_verify_work_items(checklist, organization, project, pat):
+def extract_and_verify_work_items(checklist, organization, project):
     pattern = r"AB#(\d+)"
+    pat = os.getenv('ADO_PAT')
     headers = {
         'Content-Type': 'application/json'
     }
@@ -47,15 +47,16 @@ def extract_and_verify_work_items(checklist, organization, project, pat):
             print(url)
             response  = requests.get(url, headers=headers, auth=('', pat))
             if response.status_code == 200:
-                print(f"Work item AB#{work_item_id} exists.")
-            else:
-                print(f"Work item AB#{work_item_id} does not exist or access denied.")
-                print(response.status_code)
-                sys.exit(1)
+                logging.info(f"Work item AB#{work_item_id} exists.")
+                return
+            
+            logging.error(f"Work item AB#{work_item_id} does not exist or access denied.")
+            logging.error(f"Error code: {response.status_code}.")
+            raise ValueError("Work item AB#{work_item_id} does not exist or access denied.")
 
-def main(checklist, organization, project, pat):
-    extract_and_verify_work_items(checklist, organization, project, pat)
+def main(checklist, organization, project):
+    extract_and_verify_work_items(checklist, organization, project)
 
 if __name__ == "__main__":
-    _checklist, _organization, _project, _pat = parse_args()
-    main(checklist=_checklist, organization=_organization, project=_project, pat=_pat)
+    _checklist, _organization, _project = parse_args()
+    main(checklist=_checklist, organization=_organization, project=_project)
