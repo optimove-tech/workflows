@@ -4,16 +4,21 @@ import argparse
 import sys
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description='Parameters to validate pattern'
-    )
+    parser = argparse.ArgumentParser(description='Parameters to validate pattern')
 
     parser.add_argument('-checklist', dest='checklist', type=str,
                         help='Specify checklist to parse. Example: [PR_BODY, PR_TITLE]',
                         required=True)
     
     args = parser.parse_args()
-    checklist = ast.literal_eval(args.checklist)
+    
+    # Safely parse the checklist argument
+    try:
+        checklist = ast.literal_eval(args.checklist)
+    except (ValueError, SyntaxError) as e:
+        print(f"Error parsing the checklist: {e}")
+        sys.exit(1)
+    
     return checklist
 
 def check_for_pattern(strings):
