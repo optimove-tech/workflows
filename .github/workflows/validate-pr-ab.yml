@@ -45,7 +45,7 @@ jobs:
         echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
 
         #python3 org-workflows/.github/workflows/validate-ado-wi/validate-pattern.py -checklist "['$PR_BODY', 'PR_TITLE']"
-        python3 org-workflows/.github/workflows/validate-ado-wi/validate-wi-exists.py -checklist "['$PR_BODY', 'PR_TITLE']" -org '$ADO_ORG' -project '$ADO_PROJECT' -pat '$ADO_PAT'
+        python3 org-workflows/.github/workflows/validate-ado-wi/validate-wi-exists.py -checklist "['$PR_BODY', 'PR_TITLE']" -organization '$ADO_ORG' -project '$ADO_PROJECT' -pat '$ADO_PAT'
 
     - name: Ping PR Author to link Work Item
       if: ${{ failure() && steps.ifLinked.conclusion == 'failure' }}

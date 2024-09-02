@@ -14,7 +14,7 @@ def parse_args():
                         help='Specify checklist to parse. Example: [PR_BODY, PR_TITLE]',
                         required=True)
 
-    parser.add_argument('-org', dest='org', type=str,
+    parser.add_argument('-organization', dest='organization', type=str,
                         help='Azure Organization name. Example: mobius',
                         required=True)
     
@@ -28,7 +28,11 @@ def parse_args():
     
     args = parser.parse_args()
     checklist = ast.literal_eval(args.checklist)
-    return checklist
+    organization = args.organization
+    project = args.project
+    pat = args.pat
+    
+    return checklist, organization, project, pat
 
 def extract_and_verify_work_items(checklist, organization, project, pat):
     pattern = r"AB#(\d+)"
