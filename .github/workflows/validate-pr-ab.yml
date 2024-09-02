@@ -33,31 +33,22 @@ jobs:
         echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
         echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
 
+        pwd
+
         
     - name: Check for Work Item in PR Title or Description
       id: ifLinked
       shell: python
       run: |
-        import re
-        import sys
         import os
         
         PR_BODY = os.environ['PR_BODY']
         PR_TITLE = os.environ['PR_TITLE']
 
-        def check_for_pattern(strings):
-            pattern = r"AB#\d+"
-            check_confirmed = [string for string in strings if re.search(pattern, string)]
-            return check_confirmed
-            
         checklist = [PR_BODY, PR_TITLE]
-        check_confirmed = check_for_pattern(checklist)
-        
-        if check_confirmed:
-            print("Found linked working item:", check_confirmed)
-        else:
-            print("No linked working item found.")
-            sys.exit(1)
+
+        python3 .github/workflows/validate-ado-wi/validate-pattern.py -checklist "['PR_BODY', 'PR_TITLE']"
+
        
     - name: Check Work Item in PR Title or Description is exist
       id: ifExists
