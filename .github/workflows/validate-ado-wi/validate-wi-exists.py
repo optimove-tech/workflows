@@ -2,9 +2,12 @@
 import re
 import ast
 import argparse
+import logging
 import sys
 import requests
 import os
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -44,11 +47,12 @@ def extract_and_verify_work_items(checklist, organization, project):
             print(url)
             response  = requests.get(url, headers=headers, auth=('', pat))
             if response.status_code == 200:
-                print(f"Work item AB#{work_item_id} exists.")
-            else:
-                print(f"Work item AB#{work_item_id} does not exist or access denied.")
-                print(response.status_code)
-                sys.exit(1)
+                logging.info(f"Work item AB#{work_item_id} exists.")
+                return
+            
+            logging.error(f"Work item AB#{work_item_id} does not exist or access denied.")
+            logging.error(response.status_code)
+            raise ValueError("Work item AB#{work_item_id} does not exist or access denied.")
 
 def main(checklist, organization, project):
     extract_and_verify_work_items(checklist, organization, project)
