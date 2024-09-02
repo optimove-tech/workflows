@@ -1,12 +1,14 @@
+
 import re
 import ast
 import argparse
 import sys
 import requests
-from requests.auth import HTTPBasicAuth
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Parameters to validate pattern')
+    parser = argparse.ArgumentParser(
+        description='Parameters to validate pattern'
+    )
 
     parser.add_argument('-checklist', dest='checklist', type=str,
                         help='Specify checklist to parse. Example: [PR_BODY, PR_TITLE]',
@@ -42,14 +44,13 @@ def extract_and_verify_work_items(checklist, organization, project, pat):
         for match in re.finditer(pattern, string):
             work_item_id = match.group(1)
             url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems/{work_item_id}?api-version=6.0"
-            print(f"Checking URL: {url}")
-            response = requests.get(url, headers=headers, auth=HTTPBasicAuth('', pat))
+            print(url)
+            response  = requests.get(url, headers=headers, auth=('', pat))
             if response.status_code == 200:
                 print(f"Work item AB#{work_item_id} exists.")
             else:
                 print(f"Work item AB#{work_item_id} does not exist or access denied.")
-                print(f"Status code: {response.status_code}")
-                print(f"Response: {response.text}")
+                print(response.status_code)
                 sys.exit(1)
 
 def main(checklist, organization, project, pat):
