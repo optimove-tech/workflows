@@ -33,23 +33,32 @@ jobs:
         echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
         echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
 
-        pwd
-
         
     - name: Check for Work Item in PR Title or Description
       id: ifLinked
       shell: python
       run: |
+        import re
+        import sys
         import os
+
+        def check_for_pattern(strings):
+            pattern = r"AB#\d+"
+            check_confirmed = [string for string in strings if re.search(pattern, string)]
+            return check_confirmed
         
         PR_BODY = os.environ['PR_BODY']
         PR_TITLE = os.environ['PR_TITLE']
 
         checklist = [PR_BODY, PR_TITLE]
-        print(checklist)
 
-        python3 .github/workflows/validate-ado-wi/validate-pattern.py -checklist "['$PR_BODY', '$PR_TITLE']"
-
+        check_confirmed = check_for_pattern(checklist)
+        
+        if check_confirmed:
+            print("Found linked working item:", check_confirmed)
+        else:
+            print("No linked working item found.")
+            sys.exit(1)
        
     - name: Check Work Item in PR Title or Description is exist
       id: ifExists
@@ -63,13 +72,6 @@ jobs:
         import requests
         import sys 
         import os
-
-        PR_BODY = os.environ['PR_BODY']
-        PR_TITLE = os.environ['PR_TITLE']
-
-        org = os.environ['ADO_ORG']
-        project = os.environ['ADO_PROJECT']
-        pat = os.environ['ADO_PAT']
         
         def extract_and_verify_work_items(checklist, organization, project, pat):
             pattern = r"AB#(\d+)"
@@ -90,8 +92,14 @@ jobs:
                         print(response.status_code)
                         sys.exit(1)
         
-        
+        PR_BODY = os.environ['PR_BODY']
+        PR_TITLE = os.environ['PR_TITLE']
         checklist = [PR_BODY, PR_TITLE]
+
+        org = os.environ['ADO_ORG']
+        project = os.environ['ADO_PROJECT']
+        pat = os.environ['ADO_PAT']
+        
         extract_and_verify_work_items(checklist, org, project, pat)
 
     - name: Ping PR Author to link Work Item
