@@ -13,8 +13,6 @@ def parse_args():
                         required=True)
     
     args = parser.parse_args()
-    # Debug print to check the received argument
-    print(f"Received checklist argument: {args.checklist}")
     checklist = ast.literal_eval(args.checklist)
     return checklist
 
