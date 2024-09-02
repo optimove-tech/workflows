@@ -56,14 +56,11 @@ jobs:
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        ADO_PAT: ${{ secrets.ADO_PAT }}
-        ADO_ORG: 'mobius'
-        ADO_PROJECT: 'Backstage'
       run: |
         echo "PR Title: $PR_TITLE"
         echo "PR Body: $PR_BODY"
         
-        python3 org-workflows/.github/workflows/validate-ado-wi/validate-wi-exists.py -checklist "['$PR_BODY', '$PR_TITLE']" -organization '$ADO_ORG' -project '$ADO_PROJECT' -pat '${{ secrets.ADO_PAT }}'
+        python3 org-workflows/.github/workflows/validate-ado-wi/validate-wi-exists.py -checklist "['$PR_BODY', '$PR_TITLE']" -organization 'mobius' -project 'Backstage' -pat '${{ secrets.ADO_PAT }}'
 
     - name: Ping PR Author to link Work Item
       if: ${{ failure() && steps.ifLinked.conclusion == 'failure' }}
