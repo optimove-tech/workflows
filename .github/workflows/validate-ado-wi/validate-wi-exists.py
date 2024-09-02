@@ -51,7 +51,7 @@ def extract_and_verify_work_items(checklist, organization, project):
                 return
             
             logging.error(f"Work item AB#{work_item_id} does not exist or access denied.")
-            logging.error(response.status_code)
+            logging.error(f"Error code: {response.status_code}.")
             raise ValueError("Work item AB#{work_item_id} does not exist or access denied.")
 
 def main(checklist, organization, project):
