@@ -12,4 +12,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Say hello
-        run: echo "Hello World! This is a check that runs on pull requests."
+        run: echo "Hello World! This is a check that runs on pulll requests."
