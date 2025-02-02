@@ -16,7 +16,7 @@ jobs:
       with:
         repository: optimove-tech/workflows
         path: org-workflows
-        ref: 'fix-public'
+        ref: 'main'
 
     - name: Set up Python
       uses: actions/setup-python@v2
