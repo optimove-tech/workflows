@@ -36,6 +36,7 @@ jobs:
         PULL_REQUEST=$(gh api ${{ github.event.pull_request.url }})
         
         IS_PRIVATE=$(echo $PULL_REQUEST | jq --raw-output .base.repo.private)
+        echo $IS_PRIVATE
         PR_TITLE=$(echo $PULL_REQUEST | jq --raw-output .title | tr '\n' ' ' | tr -d "[]'")
         #PR_BODY=$(echo $PULL_REQUEST | jq --raw-output .body | tr '\n' ' ' | tr -d "[]'")
 
