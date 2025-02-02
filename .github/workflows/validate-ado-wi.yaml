@@ -28,21 +28,25 @@ jobs:
         pip install requests
 
     - name: Get PR title
+      id: determine
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         PULL_REQUEST=$(gh api ${{ github.event.pull_request.url }})
-
+        
+        IS_PRIVATE=$(echo $PULL_REQUEST | jq --raw-output .base.repo.private)
         PR_TITLE=$(echo $PULL_REQUEST | jq --raw-output .title | tr '\n' ' ' | tr -d "[]'")
         #PR_BODY=$(echo $PULL_REQUEST | jq --raw-output .body | tr '\n' ' ' | tr -d "[]'")
 
         echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
+        echo "IS_PRIVATE=$IS_PRIVATE" >> $GITHUB_ENV
         #echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
 
     - name: Check for Work Item in PR Title
       id: ifLinked
       shell: bash
+      if: ${{ steps.determine.outputs.IS_PRIVATE == 'true' }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -53,6 +57,7 @@ jobs:
 
     - name: Check Work Item in PR Title is exist
       id: ifExists
+      if: ${{ steps.determine.outputs.IS_PRIVATE == 'true' }}
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
