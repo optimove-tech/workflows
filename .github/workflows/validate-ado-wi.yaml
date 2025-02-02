@@ -41,7 +41,7 @@ jobs:
         #PR_BODY=$(echo $PULL_REQUEST | jq --raw-output .body | tr '\n' ' ' | tr -d "[]'")
 
         echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
-        echo "IS_PRIVATE=$IS_PRIVATE" >> $GITHUB_ENV
+        echo "IS_PRIVATE=$IS_PRIVATE" >> $GITHUB_OUTPUT
         #echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
 
     - name: Check for Work Item in PR Title
