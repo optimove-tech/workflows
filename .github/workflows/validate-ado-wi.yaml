@@ -27,41 +27,46 @@ jobs:
       run: |
         pip install requests
 
-    - name: Get PR title & body
+    - name: Get PR title
+      id: determine
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         PULL_REQUEST=$(gh api ${{ github.event.pull_request.url }})
-
+        
+        IS_PRIVATE=$(echo $PULL_REQUEST | jq --raw-output .base.repo.private)
         PR_TITLE=$(echo $PULL_REQUEST | jq --raw-output .title | tr '\n' ' ' | tr -d "[]'")
-        PR_BODY=$(echo $PULL_REQUEST | jq --raw-output .body | tr '\n' ' ' | tr -d "[]'")
+        #PR_BODY=$(echo $PULL_REQUEST | jq --raw-output .body | tr '\n' ' ' | tr -d "[]'")
 
         echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
-        echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
+        echo "IS_PRIVATE=$IS_PRIVATE" >> $GITHUB_OUTPUT
+        #echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
 
-    - name: Check for Work Item in PR Title or Description
+    - name: Check for Work Item in PR Title
       id: ifLinked
       shell: bash
+      if: ${{ steps.determine.outputs.IS_PRIVATE == 'true' }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "PR Title: $PR_TITLE"
-        echo "PR Body: $PR_BODY"
+        #echo "PR Body: $PR_BODY"
         
-        python3 org-workflows/.github/workflows/validate-ado-wi/validate-pattern.py -checklist "['$PR_BODY', '$PR_TITLE']"
+        python3 org-workflows/.github/workflows/validate-ado-wi/validate-pattern.py -checklist "['$PR_TITLE']"
 
-    - name: Check Work Item in PR Title or Description is exist
+    - name: Check Work Item in PR Title is exist
       id: ifExists
+      if: ${{ steps.determine.outputs.IS_PRIVATE == 'true' }}
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         ADO_PAT: ${{ secrets.ADO_PAT }}
       run: |
         echo "PR Title: $PR_TITLE"
-        echo "PR Body: $PR_BODY"
+        #echo "PR Body: $PR_BODY"
         
-        python3 org-workflows/.github/workflows/validate-ado-wi/validate-wi-exists.py -checklist "['$PR_BODY', '$PR_TITLE']" -organization 'mobius' -project 'Backstage'
+        python3 org-workflows/.github/workflows/validate-ado-wi/validate-wi-exists.py -checklist "['$PR_TITLE']" -organization 'mobius' -project 'Backstage'
 
     - name: Ping PR Author to link Work Item
       if: ${{ failure() && steps.ifLinked.conclusion == 'failure' }}
@@ -76,7 +81,7 @@ jobs:
             
             ❗️ Work Item link check failed: There is no Work Item linked to this PR. 
             
-            🧩 Please add the Work Item ID to the PR title or description using the "Edit" option in the format below:
+            🧩 Please add the Work Item ID to the PR title using the "Edit" option in the format below:
             AB#XXXXX - replace X with a valid Work Item ID.
             
             🟢 Once added, please use "Re-run jobs" in PR check or proceed with "Close pull request" and "Reopen pull request" options below to restart the validation.`
@@ -93,9 +98,9 @@ jobs:
             repo: context.repo.repo,
             body: `👋 Hey @${{ github.event.pull_request.user.login }},
             
-            ❗️ Work Item link check failed: The specified Work Item ID could not be found.
+            🗿 The specified Work Item ID could not be found.
             
-            🔎 Make sure the Work Item ID exists in the PR title or description, and correct it using the "Edit" option in the format below:
+            🔎 Make sure the Work Item ID exists in the PR title, and correct it using the "Edit" option in the format below:
             AB#XXXXX - replace X with a valid Work Item ID.
             
             🟢 Once corrected, please use "Re-run jobs" in PR check or proceed with "Close pull request" and "Reopen pull request" options below to restart the validation.`
