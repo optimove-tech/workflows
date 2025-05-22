@@ -48,8 +48,8 @@ jobs:
       run: |
         echo "PR Title: $PR_TITLE"
         echo "PR Body: $PR_BODY"
-        
-        python3 org-workflows/.github/workflows/validate-ado-wi/validate-pattern.py -checklist "['$PR_BODY', '$PR_TITLE']"
+        CHECKLIST=$(jq -nc --arg body "$PR_BODY" --arg title "$PR_TITLE" '[$body, $title]')
+        python3 org-workflows/.github/workflows/validate-ado-wi/validate-pattern.py -checklist "$CHECKLIST"
 
     - name: Check Work Item in PR Title or Description is exist
       id: ifExists
