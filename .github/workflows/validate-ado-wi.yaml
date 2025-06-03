@@ -1,8 +1,8 @@
 name: Validate Work Item in PR
 
 on:
-  workflow_dispatch:
-
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
 
 jobs:
   check-work-item:
