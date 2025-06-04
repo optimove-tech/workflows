@@ -2,7 +2,7 @@ name: Validate Work Item in PR
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, edited]
+    types: [opened, reopened, synchronize]
   merge_group:
 jobs:
   check-work-item:
