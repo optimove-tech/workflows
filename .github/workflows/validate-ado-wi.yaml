@@ -8,7 +8,7 @@ jobs:
   check-work-item:
     if: true
     name: check-work-item
-    runs-on: ubuntu-latest
+    runs-on: small-runner
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
